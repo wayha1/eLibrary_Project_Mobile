@@ -16,13 +16,13 @@
         android:theme="@style/Theme.FirstITE"
         tools:targetApi="31">
         <activity
+            android:name=".Item"
+            android:exported="false" />
+        <activity
             android:name=".MainActivityHomeScreen"
             android:exported="false" />
         <activity
             android:name=".MainActivitySignUp"
-            android:exported="false" />
-        <activity
-            android:name=".MainActivity_SignUp"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
