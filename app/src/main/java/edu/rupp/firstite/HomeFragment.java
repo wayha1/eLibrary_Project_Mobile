@@ -2,82 +2,90 @@ package edu.rupp.firstite;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.squareup.picasso.Picasso;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
-
-
 public class HomeFragment extends Fragment {
+    private TextView courseNameTV;
+    private ImageView courseIV;
+    private ProgressBar loadingPB;
+    private CardView courseCV;
 
-    private ProgressBar progressBar;
-    private ItemsAdapter adapter;
-    private List<Item> itemList;
+    // http://10.1.50.86:8080/api/comdy_information
+
+    String url = "http://127.0.0.1:8080/api/comdy_information";
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_home, container, false);
-        RecyclerView recyclerView = view.findViewById(R.id.recyclerView);
-        progressBar = view.findViewById(R.id.progressBar);
-        itemList = new ArrayList<>();
-        adapter = new ItemsAdapter(itemList);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.setAdapter(adapter);
-        fetchData();
-        return view;
-    }
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
 
-    private void fetchData() {
-        String url = "http://10.0.2.2:8080"; // Your API endpoint
-        // Make network request using Volley
-        // Add Volley RequestQueue initialization if not done already
-        RequestQueue requestQueue = Volley.newRequestQueue(requireContext());
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null,
-                new Response.Listener<JSONArray>() {
-                    @SuppressLint("NotifyDataSetChanged")
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        try {
-                            for (int i = 0; i < response.length(); i++) {
-                                JSONObject itemObject = response.getJSONObject(i);
-                                String imageUrl = itemObject.getString("images");
-                                String name = itemObject.getString("name");
-                                Item item = new Item(imageUrl, name);
-                                itemList.add(item);
-                            }
-                            adapter.notifyDataSetChanged();
-                            progressBar.setVisibility(View.GONE);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // Handle error
-                        progressBar.setVisibility(View.GONE);
-                    }
-                });
-        progressBar.setVisibility(View.VISIBLE);
-        requestQueue.add(jsonArrayRequest);
+        // Inflate the layout for this fragment
+        View view = inflater.inflate(R.layout.fragment_home, container, false);
+
+        loadingPB = view.findViewById(R.id.idLoadingPB);
+        courseNameTV = view.findViewById(R.id.idTVCourseName);
+        courseIV = view.findViewById(R.id.idIVCourse);
+        courseCV = view.findViewById(R.id.idCVCourse);
+
+        RequestQueue queue;
+        queue = Volley.newRequestQueue(requireContext());
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void onResponse(JSONObject response) {
+                loadingPB.setVisibility(View.VISIBLE);
+                courseCV.setVisibility(View.VISIBLE);
+
+                try {
+                    String courseName = response.getString("name");
+                    String courseImageURL = response.getString("image");
+
+                    courseNameTV.setText(courseName);
+
+                    Picasso.get().load(courseImageURL).into(courseIV);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getContext(), "Error parsing JSON: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    courseNameTV.setText("Unknown");
+                }
+            }
+
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                if (error.networkResponse != null && error.networkResponse.statusCode == 404) {
+                    Toast.makeText(getContext(), "Data not found", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getContext(), "Fail to get data..", Toast.LENGTH_LONG).show();
+                }
+                Log.d("MyTag", "Error: " + error.getMessage());
+            }
+
+        });
+        queue.add(jsonObjectRequest);
+
+
+        return view;
     }
 }
