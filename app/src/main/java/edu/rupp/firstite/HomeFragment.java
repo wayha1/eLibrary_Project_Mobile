@@ -1,91 +1,79 @@
 package edu.rupp.firstite;
 
-import android.annotation.SuppressLint;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
-
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-import com.squareup.picasso.Picasso;
-
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
 
 public class HomeFragment extends Fragment {
-    private TextView courseNameTV;
-    private ImageView courseIV;
-    private ProgressBar loadingPB;
-    private CardView courseCV;
-
-    // http://10.1.50.86:8080/api/comdy_information
-
-    String url = "http://127.0.0.1:8080/api/comdy_information";
+    private static RecyclerView recyclerView;
+    private static MovieAdapter movieAdapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        loadingPB = view.findViewById(R.id.idLoadingPB);
-        courseNameTV = view.findViewById(R.id.idTVCourseName);
-        courseIV = view.findViewById(R.id.idIVCourse);
-        courseCV = view.findViewById(R.id.idCVCourse);
+        recyclerView = view.findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
 
-        RequestQueue queue;
-        queue = Volley.newRequestQueue(requireContext());
-
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void onResponse(JSONObject response) {
-                loadingPB.setVisibility(View.VISIBLE);
-                courseCV.setVisibility(View.VISIBLE);
-
-                try {
-                    String courseName = response.getString("name");
-                    String courseImageURL = response.getString("image");
-
-                    courseNameTV.setText(courseName);
-
-                    Picasso.get().load(courseImageURL).into(courseIV);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    Toast.makeText(getContext(), "Error parsing JSON: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    courseNameTV.setText("Unknown");
-                }
-            }
-
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                if (error.networkResponse != null && error.networkResponse.statusCode == 404) {
-                    Toast.makeText(getContext(), "Data not found", Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(getContext(), "Fail to get data..", Toast.LENGTH_LONG).show();
-                }
-                Log.d("MyTag", "Error: " + error.getMessage());
-            }
-
-        });
-        queue.add(jsonObjectRequest);
-
+        new FetchMovieDataTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
         return view;
+    }
+
+    private class FetchMovieDataTask extends AsyncTask<Void, Void, ArrayList<Movie>> {
+
+        @Override
+        protected ArrayList<Movie> doInBackground(Void... voids) {
+            ArrayList<Movie> movies = new ArrayList<>();
+            try {
+                URL url = new URL("http://10.0.2.2:5000/");
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                try {
+                    InputStream in = urlConnection.getInputStream();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+                    StringBuilder result = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        result.append(line);
+                    }
+                    JSONArray jsonArray = new JSONArray(result.toString());
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject movieJson = jsonArray.getJSONObject(i);
+                        int id = movieJson.getInt("id");
+                        String name = movieJson.getString("name");
+                        String imageUrl = movieJson.getString("imageUrl");
+                        movies.add(new Movie(id, name, imageUrl));
+                    }
+                } finally {
+                    urlConnection.disconnect();
+                }
+            } catch (IOException | JSONException e) {
+                e.printStackTrace();
+            }
+            return movies;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<Movie> movies) {
+            movieAdapter = new MovieAdapter(movies, getContext());
+            recyclerView.setAdapter(movieAdapter);
+        }
     }
 }

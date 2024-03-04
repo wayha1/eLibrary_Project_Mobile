@@ -25,7 +25,7 @@
             android:id="@+id/editTextEmail"
             android:layout_marginTop="30dp"
             android:layout_width="390dp"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:hint="Enter Address"
             android:inputType="textEmailAddress"
             android:layout_marginLeft="10dp"/>
@@ -50,7 +50,7 @@
         <EditText
             android:layout_marginTop="30dp"
             android:layout_width="390dp"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:hint="Enter Address"
             android:inputType="textPassword"
             android:layout_marginLeft="10dp"/>
@@ -74,7 +74,7 @@
         <EditText
             android:layout_marginTop="30dp"
             android:layout_width="390dp"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:hint="Comfirm Password"
             android:inputType="textPassword"
             android:layout_marginLeft="10dp"/>
@@ -109,7 +109,7 @@ as well whatever you want to buy or read it. THANK YOU!"/>
         android:layout_width="400dp"
         android:layout_height="60dp"
         android:layout_below="@+id/txtFullDescription1"
-        android:layout_marginTop="160dp"
+        android:layout_marginTop="60dp"
         android:textSize="20dp"
         android:layout_centerHorizontal="true"
         android:text="SIGN UP"/>
