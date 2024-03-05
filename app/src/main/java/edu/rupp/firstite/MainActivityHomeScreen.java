@@ -6,8 +6,11 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.FrameLayout;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -16,11 +19,20 @@ public class MainActivityHomeScreen extends AppCompatActivity {
 
     private BottomNavigationView bottomNavigationView;
     private FrameLayout frameLayout;
+    private Button btnSeeAll;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_home_screen);
+
+        btnSeeAll = findViewById(R.id.btnseeAlly);
+        btnSeeAll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openMainActivityGrid();
+            }
+        });
 
         bottomNavigationView = findViewById(R.id.bottomNaviView);
         frameLayout = findViewById(R.id.frameLayout);
@@ -58,5 +70,10 @@ public class MainActivityHomeScreen extends AppCompatActivity {
         }
 
         fragmentTransaction.commitAllowingStateLoss();
+    }
+
+    public void openMainActivityGrid(){
+        Intent intent = new Intent(this, MainActivityGrid.class);
+        startActivity(intent);
     }
 }

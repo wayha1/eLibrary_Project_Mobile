@@ -1,10 +1,13 @@
 package edu.rupp.firstite;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -22,6 +25,8 @@ import java.util.ArrayList;
 public class HomeFragment extends Fragment {
     private static RecyclerView recyclerView;
     private static MovieAdapter movieAdapter;
+
+    private Button btnSeeAll;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -43,7 +48,7 @@ public class HomeFragment extends Fragment {
         protected ArrayList<Movie> doInBackground(Void... voids) {
             ArrayList<Movie> movies = new ArrayList<>();
             try {
-                URL url = new URL("http://10.0.2.2:5000/");
+                URL url = new URL("http://10.0.2.2:5000/api/horror");
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                 try {
                     InputStream in = urlConnection.getInputStream();
